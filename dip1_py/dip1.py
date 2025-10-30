@@ -12,6 +12,10 @@ def do_something_that_my_tutor_is_gonna_like(img: np.ndarray) -> np.ndarray:
     if img is None or not hasattr(img, "ndim"):
         raise ValueError("Input image is invalid")
     # TODO: replace this placeholder with your pipeline
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+
     # raise NotImplementedError("Implement your processing here")
     return img  # <-- temporary; replace with your result
 
