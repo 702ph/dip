@@ -13,7 +13,10 @@ def do_something_that_my_tutor_is_gonna_like(img: np.ndarray) -> np.ndarray:
         raise ValueError("Input image is invalid")
     # TODO: replace this placeholder with your pipeline
     # raise NotImplementedError("Implement your processing here")
-    return img  # <-- temporary; replace with your result
+    
+    resultImg = cv2.cvtColor(img, cv2.COLOR_RGB2BGRA)
+
+    return resultImg  # <-- temporary; replace with your result
 
 def run(filename: str) -> None:
     """Load image, call processing, show and save."""
