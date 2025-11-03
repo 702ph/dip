@@ -21,7 +21,8 @@ def do_something_that_my_tutor_is_gonna_like(img: np.ndarray) -> np.ndarray:
     M = cv2.getRotationMatrix2D(center, angle, scale=1.0)
     img = cv2.warpAffine(img, M, (w, h))
     
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGRA)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
     
     return img  # <-- temporary; replace with your result
 
