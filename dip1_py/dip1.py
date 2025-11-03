@@ -14,9 +14,16 @@ def do_something_that_my_tutor_is_gonna_like(img: np.ndarray) -> np.ndarray:
     # TODO: replace this placeholder with your pipeline
     # raise NotImplementedError("Implement your processing here")
     
-    resultImg = cv2.cvtColor(img, cv2.COLOR_RGB2BGRA)
-
-    return resultImg  # <-- temporary; replace with your result
+    img = cv2.bitwise_not(img)
+    h, w = img.shape[:2]
+    center = (w / 2, h / 2)
+    angle = 90
+    M = cv2.getRotationMatrix2D(center, angle, scale=1.0)
+    img = cv2.warpAffine(img, M, (w, h))
+    
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGRA)
+    
+    return img  # <-- temporary; replace with your result
 
 def run(filename: str) -> None:
     """Load image, call processing, show and save."""
