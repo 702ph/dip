@@ -36,8 +36,8 @@ class NoiseReductionAlgorithm(Enum):
 
 
 noise_reduction_algorithm_names: Dict[NoiseReductionAlgorithm, str] = {
-    NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER: "NR_MOVING_AVERAGE_FILTER",
     NoiseReductionAlgorithm.NR_MEDIAN_FILTER: "NR_MEDIAN_FILTER",
+    NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER: "NR_MOVING_AVERAGE_FILTER",
     NoiseReductionAlgorithm.NR_BILATERAL_FILTER: "NR_BILATERAL_FILTER",
 }
 
@@ -55,10 +55,12 @@ def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
 def average_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     """
     Moving average filter (aka box filter).
-
     You might want to use dip2.spatial_convolution(...) within this function.
     """
+
     # TO DO !!
+
+    print("debug")
     return np.array(src, copy=True)
 
 
@@ -67,7 +69,22 @@ def median_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     Median filter.
     """
     # TO DO !!
-    return np.array(src, copy=True)
+    pad_size = int(k_size/2)
+    padded_src = np.pad(src, (pad_size, pad_size), mode="mean")
+    print("debug")
+
+    filtered_img = np.empty(src.shape, dtype=np.uint8)
+    height = src.shape[0]
+    width = src.shape[1]
+
+    for y in range(height):
+        for x in range(width):
+            crapped = padded_src[y:y+k_size, x:x+k_size]
+            median = np.median(crapped)
+            filtered_img[y,x] = median
+
+    # print("debug")
+    return np.array(filtered_img, copy=True)
 
 
 def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_radiometric: float) -> np.ndarray:
@@ -105,23 +122,23 @@ def denoise_image(
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return average_filter(src, 1)
+            return average_filter(src, 3)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return average_filter(src, 1)
+            return average_filter(src, 3)
         raise ValueError("Unhandled noise type!")
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_MEDIAN_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return median_filter(src, 1)
+            return median_filter(src, 5)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return median_filter(src, 1)
+            return median_filter(src, 5)
         raise ValueError("Unhandled noise type!")
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_BILATERAL_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return bilateral_filter(src, 1, 1.0, 1.0)
+            return bilateral_filter(src, 3, 1.0, 1.0)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return bilateral_filter(src, 1, 1.0, 1.0)
+            return bilateral_filter(src, 3, 1.0, 1.0)
         raise ValueError("Unhandled noise type!")
 
     raise ValueError("Unhandled filter type!")
