@@ -12,7 +12,7 @@ from enum import Enum, auto
 from typing import Dict
 
 import numpy as np
-from cv2.gapi import kernel
+
 
 
 class NoiseType(Enum):
