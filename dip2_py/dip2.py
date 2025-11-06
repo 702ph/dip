@@ -49,6 +49,7 @@ def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     Performs spatial convolution of image and filter kernel.
     """
     # TO DO !!
+
     return np.array(src, copy=True)
 
 
@@ -57,10 +58,10 @@ def average_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     Moving average filter (aka box filter).
     You might want to use dip2.spatial_convolution(...) within this function.
     """
-
     # TO DO !!
-
     print("debug")
+
+
     return np.array(src, copy=True)
 
 
@@ -70,21 +71,19 @@ def median_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     """
     # TO DO !!
     pad_size = int(k_size/2)
-    padded_src = np.pad(src, (pad_size, pad_size), mode="mean")
-    print("debug")
+    padded_src = np.pad(src, (pad_size, pad_size), mode="reflect")
 
-    filtered_img = np.empty(src.shape, dtype=np.uint8)
     height = src.shape[0]
     width = src.shape[1]
+    filtered_img = np.empty((height, width), dtype=np.uint8)
 
     for y in range(height):
         for x in range(width):
             crapped = padded_src[y:y+k_size, x:x+k_size]
-            median = np.median(crapped)
-            filtered_img[y,x] = median
+            filtered_img[y,x] = np.median(crapped).astype(np.uint8)
 
-    # print("debug")
     return np.array(filtered_img, copy=True)
+
 
 
 def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_radiometric: float) -> np.ndarray:
