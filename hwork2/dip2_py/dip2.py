@@ -58,7 +58,7 @@ def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     padding_height = kernel_h//2
     padding_width = kernel_w//2
 
-    padded_image = np.pad(src,((padding_height,),(padding_width,)), "reflect")
+    padded_image = np.pad(src,((padding_height,),(padding_width,)), "median")
 
     result = np.zeros_like(src, dtype=float)
 
@@ -90,7 +90,7 @@ def median_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     """
     Median filter.
     """
-    padded_src = np.pad(src, ((k_size,),(k_size,)),"reflect")
+    padded_src = np.pad(src, ((k_size//2,),(k_size//2,)),"symmetric")
     src_h, src_w = src.shape
     result = np.zeros_like(src, dtype=float)
     for y in range(src_h):
@@ -108,7 +108,7 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
     """
     Bilateral filter.
     """
-    padded_image = np.pad(src, ((k_size//2,k_size//2),(k_size//2,k_size//2)),"median")
+    padded_image = np.pad(src, ((k_size//2,),(k_size//2,)),"median")
 
     result = np.zeros_like(src, dtype=float)
     img_h, img_w = src.shape
@@ -176,23 +176,23 @@ def denoise_image(
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return average_filter(src, 3)
+            return average_filter(src, 5)
         if noise_type is NoiseType.NOISE_TYPE_2:
             return average_filter(src, 3)
         raise ValueError("Unhandled noise type!")
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_MEDIAN_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return median_filter(src, 3)
+            return median_filter(src, 5)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return median_filter(src, 3)
+            return median_filter(src, 5)
         raise ValueError("Unhandled noise type!")
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_BILATERAL_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return bilateral_filter(src, 13, 1.0, 100.0)
+            return bilateral_filter(src, 9, 2, 100.0)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return bilateral_filter(src, 13, 1.0, 100.0)
+            return bilateral_filter(src, 9, 2, 100.0)
         raise ValueError("Unhandled noise type!")
 
     raise ValueError("Unhandled filter type!")
