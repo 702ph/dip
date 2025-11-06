@@ -13,19 +13,26 @@ def do_something_that_my_tutor_is_gonna_like(img: np.ndarray) -> np.ndarray:
         raise ValueError("Input image is invalid")
     # TODO: replace this placeholder with your pipeline
     # raise NotImplementedError("Implement your processing here")
-    img = cv2.bitwise_not(img)
+    # img = cv2.bitwise_not(img)
 
-    h, w = img.shape[:2]
+    # h, w = img.shape[:2]
     
-    center = (w / 2, h / 2)
+    # center = (w / 2, h / 2)
 
-    angle = 90
+    # angle = 90
     
-    M = cv2.getRotationMatrix2D(center, angle, scale=1.0)
+    # M = cv2.getRotationMatrix2D(center, angle, scale=1.0)
     
-    rotated = cv2.warpAffine(img, M, (w, h))
+    # rotated = cv2.warpAffine(img, M, (w, h))
     
-    return rotated  # <-- temporary; replace with your result
+    img[:,:,2]= 255
+    img[:,:,1]= 10
+    img[:,:,0]= 10
+
+    # print(img.shape)
+    (img.shape)
+
+    return img  # <-- temporary; replace with your result
 
     return img  # <-- temporary; replace with your result
 
