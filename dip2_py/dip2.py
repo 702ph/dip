@@ -49,7 +49,8 @@ def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     Performs spatial convolution of image and filter kernel.
     """
     # TO DO !!
-    result = ((src * np.flip(kernel)).sum()/kernel.size).astype(np.int8)
+    # result = ((src * np.flip(kernel)).sum()/kernel.size).astype(np.uint8)
+    result = ((src * np.flip(kernel)).sum()).astype(np.uint8)
     return np.array(result, copy=True)
 
 
@@ -67,7 +68,8 @@ def average_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     width = src.shape[1]
     filtered_img = np.empty((height, width), dtype=np.uint8)
 
-    kernel = np.ones((k_size, k_size), dtype=np.uint8)
+    kernel = np.ones((k_size, k_size))
+    kernel /= kernel.sum() #normalization
 
     for y in range(height):
         for x in range(width):
@@ -104,7 +106,39 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
     Bilateral filter.
     """
     # TO DO !!
-    return np.array(src, copy=True)
+    print("bilateral_filter():")
+    pad_size = int(k_size/2)
+    padded_src = np.pad(src, (pad_size, pad_size), mode="reflect")
+
+    height = src.shape[0]
+    width = src.shape[1]
+    filtered_img = np.empty((height, width), dtype=np.uint8)
+
+    # spatial kernel
+    distances = np.zeros((k_size,k_size), dtype=float)
+    kernel_center = int(k_size/2)
+    for y in range(k_size):
+        for x in range(k_size):
+            distances[y,x] = (x-kernel_center)**2 + (y-kernel_center)**2
+    spatial_kernel = np.exp(-distances/(2*sigma_spatial**2))
+
+    # iterate over image
+    for y in range(height):
+        for x in range(width):
+            crapped = padded_src[y:y+k_size, x:x+k_size]
+
+            # radiometric kernel
+            center_pix = crapped[kernel_center, kernel_center]
+            diff_intensity = (crapped - center_pix)**2
+            radiometric_kernel = np.exp(-diff_intensity/(2*sigma_radiometric**2))
+
+            # combine kernels
+            kernel = spatial_kernel*radiometric_kernel
+            kernel /= kernel.sum() #normalization
+            filtered_img[y,x] = spatial_convolution(crapped, kernel)
+
+    return np.array(filtered_img, copy=True)
+
 
 
 def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
