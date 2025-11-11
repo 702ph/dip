@@ -30,16 +30,18 @@ noise_type_names: Dict[NoiseType, str] = {
 
 class NoiseReductionAlgorithm(Enum):
     """Enumerates available denoising algorithms."""
-
     NR_MOVING_AVERAGE_FILTER = auto()
     NR_MEDIAN_FILTER = auto()
-    NR_BILATERAL_FILTER = auto()
+    # NR_BILATERAL_FILTER = auto()
+    NR_NLM_FILTER = auto()
+
 
 
 noise_reduction_algorithm_names: Dict[NoiseReductionAlgorithm, str] = {
     NoiseReductionAlgorithm.NR_MEDIAN_FILTER: "NR_MEDIAN_FILTER",
     NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER: "NR_MOVING_AVERAGE_FILTER",
-    NoiseReductionAlgorithm.NR_BILATERAL_FILTER: "NR_BILATERAL_FILTER",
+    # NoiseReductionAlgorithm.NR_BILATERAL_FILTER: "NR_BILATERAL_FILTER",
+    NoiseReductionAlgorithm.NR_NLM_FILTER: "NR_NLM_FILTER",
 }
 
 
@@ -145,7 +147,45 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
     """
     Non-local means filter (optional task!).
     """
-    return np.array(src, copy=True)
+    print("nlm_filter():")
+    patch_size = 3
+
+    pad_size = int(search_size/2)
+    padded_src = np.pad(src, (pad_size, pad_size), mode="reflect")
+
+    height = src.shape[0]
+    width = src.shape[1]
+    filtered_img = np.zeros((height, width), dtype=np.uint8)
+
+    # iterate over image
+    search_window_pad_size = int(patch_size/2)
+    for y in range(height):
+        for x in range(width):
+
+            # crop search_window
+            search_window = padded_src[0:y+search_size, 0:x+search_size]
+            padded_search_window = np.pad(search_window, (search_window_pad_size, search_window_pad_size), mode="reflect")
+
+            # center path
+            center_patch = padded_search_window[y:(y+patch_size), x:(x+patch_size)]
+            # center_patch_avg = center_patch.mean()
+
+            distance_sum = 0.0
+            for y_s in range(search_size):
+                for x_s in range(search_size):
+                    patch = padded_search_window[y_s:(y_s+patch_size), x_s:(x_s+patch_size)]
+                    # patch_avg = patch.mean()
+                    # distance_sum += (patch_avg - center_patch_avg)**2
+                    # weight =+ np.exp(-distance/(2*sigma**2))
+                    # weight =+ distance/(2*sigma**2)
+
+            # weight = weight/(search_size*search_size)
+            distance_sum = distance_sum/(search_size*search_size)
+            weight = np.exp(-distance_sum/(2*sigma**2))
+            # weight = weight / (search_size*search_size)
+            filtered_img[y,x] = src[y,x] * weight
+
+    return np.array(filtered_img, copy=True)
 
 
 def choose_best_algorithm(noise_type: NoiseType) -> NoiseReductionAlgorithm:
@@ -180,11 +220,18 @@ def denoise_image(
             return median_filter(src, 5)
         raise ValueError("Unhandled noise type!")
 
-    if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_BILATERAL_FILTER:
+    # if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_BILATERAL_FILTER:
+    #     if noise_type is NoiseType.NOISE_TYPE_1:
+    #         return bilateral_filter(src, 3, 1.0, 1.0)
+    #     if noise_type is NoiseType.NOISE_TYPE_2:
+    #         return bilateral_filter(src, 3, 1.0, 1.0)
+    #     raise ValueError("Unhandled noise type!")
+
+    if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_NLM_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return bilateral_filter(src, 3, 1.0, 1.0)
+            return nlm_filter(src, 5, 1.0)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return bilateral_filter(src, 3, 1.0, 1.0)
+            return nlm_filter(src, 5, 1.0)
         raise ValueError("Unhandled noise type!")
 
     raise ValueError("Unhandled filter type!")
