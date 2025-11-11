@@ -157,6 +157,9 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
     width = src.shape[1]
     filtered_img = np.zeros((height, width), dtype=np.uint8)
 
+    denom = 2.0 * (sigma * sigma)
+    eps = 1e-8 #to avoid 0
+
     # iterate over image
     search_window_pad_size = int(patch_size/2)
     for y in range(height):
@@ -168,22 +171,28 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
 
             # center path
             center_patch = padded_search_window[y:(y+patch_size), x:(x+patch_size)]
-            # center_patch_avg = center_patch.mean()
+            center_mean = center_patch.mean()
 
-            distance_sum = 0.0
+            weight_sum = 0.0
+            weighted_pixel_sum = 0.0
             for y_s in range(search_size):
                 for x_s in range(search_size):
                     patch = padded_search_window[y_s:(y_s+patch_size), x_s:(x_s+patch_size)]
+                    path_mean = patch.mean()
                     # patch_avg = patch.mean()
                     # distance_sum += (patch_avg - center_patch_avg)**2
                     # weight =+ np.exp(-distance/(2*sigma**2))
                     # weight =+ distance/(2*sigma**2)
+                    # diff = patch - center_patch
+                    # distance = np.mean(diff * diff)
+                    # distance = np.sum(diff * diff)
+                    distance = (path_mean - center_mean)**2
 
-            # weight = weight/(search_size*search_size)
-            distance_sum = distance_sum/(search_size*search_size)
-            weight = np.exp(-distance_sum/(2*sigma**2))
-            # weight = weight / (search_size*search_size)
-            filtered_img[y,x] = src[y,x] * weight
+                    weight = np.exp(-distance/ denom)
+                    weight_sum += weight
+                    weighted_pixel_sum += weight * padded_search_window[y_s, x_s]
+
+            filtered_img[y,x] = weighted_pixel_sum / (weight_sum + eps)
 
     return np.array(filtered_img, copy=True)
 
