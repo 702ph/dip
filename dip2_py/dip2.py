@@ -182,7 +182,7 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
             center_patch = padded_search_window[
                 center_pos_y - search_window_pad_size : center_pos_y + search_window_pad_size + 1,
                 center_pos_x - search_window_pad_size : center_pos_x + search_window_pad_size + 1]
-            center_mean = center_patch.mean()
+            center_patch_mean = center_patch.mean()
 
             weight_sum = 0.0
             weighted_pixel_sum = 0.0
@@ -192,7 +192,7 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
                     patch = padded_search_window[y_s:(y_s+patch_size), x_s:(x_s+patch_size)]
 
                     path_mean = patch.mean()
-                    distance = (path_mean - center_mean)**2
+                    distance = (path_mean - center_patch_mean)**2
                     weight = np.exp(-distance/ denom)
                     weight_sum += weight
                     weighted_pixel_sum += weight * padded_search_window[y_s + patch_center, x_s + patch_center]
