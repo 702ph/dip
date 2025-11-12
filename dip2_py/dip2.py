@@ -191,8 +191,8 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
                     # todo
                     patch = padded_search_window[y_s:(y_s+patch_size), x_s:(x_s+patch_size)]
 
-                    path_mean = patch.mean()
-                    distance = (path_mean - center_patch_mean)**2
+                    patch_mean = patch.mean()
+                    distance = (patch_mean - center_patch_mean) ** 2
                     weight = np.exp(-distance/ denom)
                     weight_sum += weight
                     weighted_pixel_sum += weight * padded_search_window[y_s + patch_center, x_s + patch_center]
