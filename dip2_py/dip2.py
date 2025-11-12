@@ -166,11 +166,12 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
         for x in range(width):
 
             # crop search_window
-            search_window = padded_src[0:y+search_size, 0:x+search_size]
+            search_window = padded_src[y:y+search_size, x:x+search_size]
             padded_search_window = np.pad(search_window, (search_window_pad_size, search_window_pad_size), mode="reflect")
 
-            # center path
-            center_patch = padded_search_window[y:(y+patch_size), x:(x+patch_size)]
+            # center patch
+            # todo :
+            center_patch = padded_search_window[0:patch_size, 0:patch_size]
             center_mean = center_patch.mean()
 
             weight_sum = 0.0
@@ -231,9 +232,9 @@ def denoise_image(
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_NLM_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return nlm_filter(src, 5, 1.0)
+            return nlm_filter(src, 5, 20.0)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return nlm_filter(src, 5, 1.0)
+            return nlm_filter(src, 5, 20.0)
         raise ValueError("Unhandled noise type!")
 
     raise ValueError("Unhandled filter type!")
