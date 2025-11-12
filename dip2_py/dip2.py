@@ -32,7 +32,7 @@ class NoiseReductionAlgorithm(Enum):
     """Enumerates available denoising algorithms."""
     NR_MOVING_AVERAGE_FILTER = auto()
     NR_MEDIAN_FILTER = auto()
-    # NR_BILATERAL_FILTER = auto()
+    NR_BILATERAL_FILTER = auto()
     NR_NLM_FILTER = auto()
 
 
@@ -40,7 +40,7 @@ class NoiseReductionAlgorithm(Enum):
 noise_reduction_algorithm_names: Dict[NoiseReductionAlgorithm, str] = {
     NoiseReductionAlgorithm.NR_MEDIAN_FILTER: "NR_MEDIAN_FILTER",
     NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER: "NR_MOVING_AVERAGE_FILTER",
-    # NoiseReductionAlgorithm.NR_BILATERAL_FILTER: "NR_BILATERAL_FILTER",
+    NoiseReductionAlgorithm.NR_BILATERAL_FILTER: "NR_BILATERAL_FILTER",
     NoiseReductionAlgorithm.NR_NLM_FILTER: "NR_NLM_FILTER",
 }
 
@@ -62,7 +62,7 @@ def average_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     You might want to use dip2.spatial_convolution(...) within this function.
     """
     # TO DO !!
-    print("debug")
+    print("average_filter():")
     pad_size = int(k_size/2)
     padded_src = np.pad(src, (pad_size, pad_size), mode="reflect")
 
@@ -235,12 +235,12 @@ def denoise_image(
             return median_filter(src, 5)
         raise ValueError("Unhandled noise type!")
 
-    # if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_BILATERAL_FILTER:
-    #     if noise_type is NoiseType.NOISE_TYPE_1:
-    #         return bilateral_filter(src, 3, 1.0, 1.0)
-    #     if noise_type is NoiseType.NOISE_TYPE_2:
-    #         return bilateral_filter(src, 3, 1.0, 1.0)
-    #     raise ValueError("Unhandled noise type!")
+    if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_BILATERAL_FILTER:
+        if noise_type is NoiseType.NOISE_TYPE_1:
+            return bilateral_filter(src, 3, 1.0, 1.0)
+        if noise_type is NoiseType.NOISE_TYPE_2:
+            return bilateral_filter(src, 3, 1.0, 1.0)
+        raise ValueError("Unhandled noise type!")
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_NLM_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
