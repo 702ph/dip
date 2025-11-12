@@ -159,8 +159,8 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
     filtered_img = np.zeros((height, width), dtype=np.uint8)
 
     denom = 2.0 * (sigma * sigma)
-    eps = 1e-8 #to avoid 0
-    # patch_center_pos = int(patch_size/2)
+    eps_small = 1e-6
+    eps_div = 1e-8 #to avoid 0 division
 
     # iterate over image
     search_window_pad_size = int(patch_size/2)
@@ -190,15 +190,18 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
                 for x_s in range(search_size):
                     # todo
                     patch = padded_search_window[y_s:(y_s+patch_size), x_s:(x_s+patch_size)]
-
                     patch_mean = patch.mean()
                     distance = (patch_mean - center_patch_mean) ** 2
                     weight = np.exp(-distance/ denom)
                     weight_sum += weight
                     weighted_pixel_sum += weight * padded_search_window[y_s + patch_center, x_s + patch_center]
 
-            filtered_img[y,x] = weighted_pixel_sum / (weight_sum + eps)
+            # filtered_img[y,x] = weighted_pixel_sum / (weight_sum + eps)
             # filtered_img[y,x] = weighted_pixel_sum / (weight_sum)
+            if (weight_sum < eps_small) or not np.isfinite(weight_sum):
+                filtered_img[y, x] = padded_search_window[center_pos_y, center_pos_x]
+            else:
+                filtered_img[y, x] = weighted_pixel_sum / weight_sum
 
     return np.array(filtered_img, copy=True)
 
