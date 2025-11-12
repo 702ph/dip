@@ -149,6 +149,7 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
     """
     print("nlm_filter():")
     patch_size = 3
+    patch_center = int(patch_size/2)
 
     pad_size = int(search_size/2)
     padded_src = np.pad(src, (pad_size, pad_size), mode="reflect")
@@ -159,6 +160,7 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
 
     denom = 2.0 * (sigma * sigma)
     eps = 1e-8 #to avoid 0
+    # patch_center_pos = int(patch_size/2)
 
     # iterate over image
     search_window_pad_size = int(patch_size/2)
@@ -166,24 +168,34 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
         for x in range(width):
 
             # crop search_window
-            search_window = padded_src[y:y+search_size, x:x+search_size]
-            padded_search_window = np.pad(search_window, (search_window_pad_size, search_window_pad_size), mode="reflect")
+            search_window = padded_src[y:y+search_size, x:x+search_size].astype(np.float32)
+            padded_search_window = np.pad(
+                search_window,
+                ((search_window_pad_size, search_window_pad_size),
+                 (search_window_pad_size, search_window_pad_size)),
+                mode="reflect"
+            )
 
             # center patch
-            # todo :
-            center_patch = padded_search_window[0:patch_size, 0:patch_size]
+            center_pos_y = int(padded_search_window.shape[0]/2)
+            center_pos_x = int(padded_search_window.shape[1]/2)
+            center_patch = padded_search_window[
+                center_pos_y - search_window_pad_size : center_pos_y + search_window_pad_size + 1,
+                center_pos_x - search_window_pad_size : center_pos_x + search_window_pad_size + 1]
             center_mean = center_patch.mean()
 
             weight_sum = 0.0
             weighted_pixel_sum = 0.0
             for y_s in range(search_size):
                 for x_s in range(search_size):
+                    # todo
                     patch = padded_search_window[y_s:(y_s+patch_size), x_s:(x_s+patch_size)]
+
                     path_mean = patch.mean()
                     distance = (path_mean - center_mean)**2
                     weight = np.exp(-distance/ denom)
                     weight_sum += weight
-                    weighted_pixel_sum += weight * padded_search_window[y_s, x_s]
+                    weighted_pixel_sum += weight * padded_search_window[y_s + patch_center, x_s + patch_center]
 
             filtered_img[y,x] = weighted_pixel_sum / (weight_sum + eps)
             # filtered_img[y,x] = weighted_pixel_sum / (weight_sum)
