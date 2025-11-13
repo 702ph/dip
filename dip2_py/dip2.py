@@ -122,7 +122,7 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
     for y in range(k_size):
         for x in range(k_size):
             distances[y,x] = (x-kernel_center)**2 + (y-kernel_center)**2
-    spatial_kernel = np.exp(-distances/(2*sigma_spatial**2))
+    spatial_kernel = (1/(2*np.pi*sigma_spatial**2))* np.exp(-distances/(2*sigma_spatial**2))
 
     # iterate over image
     for y in range(height):
@@ -132,11 +132,11 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
             # radiometric kernel
             center_pix = crapped[kernel_center, kernel_center]
             diff_intensity = (crapped - center_pix)**2
-            radiometric_kernel = np.exp(-diff_intensity/(2*sigma_radiometric**2))
+            radiometric_kernel = (1/(2*np.pi*sigma_radiometric**2))*np.exp(-diff_intensity/(2*sigma_radiometric**2))
 
             # combine kernels
             kernel = spatial_kernel*radiometric_kernel
-            kernel /= kernel.sum() #normalization
+            kernel /= kernel.sum()
             filtered_img[y,x] = spatial_convolution(crapped, kernel)
 
     return np.array(filtered_img, copy=True)
@@ -223,7 +223,6 @@ def denoise_image(
     Denoising, with parameters specifically tweaked to the supported noise types.
     """
     # TO DO !!
-
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
             return average_filter(src, 3)
@@ -240,9 +239,9 @@ def denoise_image(
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_BILATERAL_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
-            return bilateral_filter(src, 3, 1.0, 1.0)
+            return bilateral_filter(src, 3, 2.0, 125.0)
         if noise_type is NoiseType.NOISE_TYPE_2:
-            return bilateral_filter(src, 3, 1.0, 1.0)
+            return bilateral_filter(src, 3, 2.0, 125.0)
         raise ValueError("Unhandled noise type!")
 
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_NLM_FILTER:
