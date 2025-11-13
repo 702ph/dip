@@ -33,14 +33,14 @@ class NoiseReductionAlgorithm(Enum):
     NR_MOVING_AVERAGE_FILTER = auto()
     NR_MEDIAN_FILTER = auto()
     NR_BILATERAL_FILTER = auto()
-    # NR_NLM_FILTER = auto()
+    NR_NLM_FILTER = auto()
 
 
 noise_reduction_algorithm_names: Dict[NoiseReductionAlgorithm, str] = {
     NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER: "NR_MOVING_AVERAGE_FILTER",
     NoiseReductionAlgorithm.NR_MEDIAN_FILTER: "NR_MEDIAN_FILTER",
     NoiseReductionAlgorithm.NR_BILATERAL_FILTER: "NR_BILATERAL_FILTER",
-    # NoiseReductionAlgorithm.NR_NLM_FILTER: "NR_NLM_FILTER",
+    NoiseReductionAlgorithm.NR_NLM_FILTER: "NR_NLM_FILTER",
 }
 
 
@@ -70,7 +70,6 @@ def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
             result[y, x] = np.sum(region * flipkernel)
 
     return result
-    return np.array(src, copy=True)
 
 
 def average_filter(src: np.ndarray, k_size: int) -> np.ndarray:
@@ -84,8 +83,7 @@ def average_filter(src: np.ndarray, k_size: int) -> np.ndarray:
 
     result = spatial_convolution(src, kernel)
     return result
-    # TO DO !!
-    return np.array(src, copy=True)
+
 
 
 def median_filter(src: np.ndarray, k_size: int) -> np.ndarray:
@@ -103,10 +101,9 @@ def median_filter(src: np.ndarray, k_size: int) -> np.ndarray:
             flat_region = region.flatten()
             sorted_region = np.array(sorted((flat_region)))
             result[y, x] = np.median(sorted_region)
-
     # TO DO !!
     return result
-    return np.array(src, copy=True)
+
 
 
 def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_radiometric: float) -> np.ndarray:
@@ -133,19 +130,27 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
             r_w = np.zeros_like(spatialmat)
             area = padded_image[y:y + k_size, x:x + k_size]
 
-            for ky in range(k_size):
-                for kx in range(k_size):
-                    weightrad = (1 / (2 * np.pi * sigma_radiometric ** 2)) * np.exp(
-                        - (((area[ky, kx] - area[center[0], center[1]]) ** 2) / (2 * sigma_radiometric ** 2))
-                    )
-                    r_w[ky, kx] = weightrad
+            #original
+            # for ky in range(k_size):
+            #     for kx in range(k_size):
+            #         weightrad = (1 / (2 * np.pi * sigma_radiometric ** 2)) * np.exp(
+            #             - (((area[ky, kx] - area[center[0], center[1]]) ** 2) / (2 * sigma_radiometric ** 2))
+            #         )
+            #         r_w[ky, kx] = weightrad
+
+            # vectorized
+            center_pix = area[center[0], center[1]]
+            diff = area - center_pix
+            r_w = (1 / (2 * np.pi * sigma_radiometric ** 2)) * np.exp(
+                - (diff ** 2) / (2 * sigma_radiometric ** 2)
+            )
 
             final_kernel = np.multiply(spatialmat, r_w)
             final_kernel /= np.sum(final_kernel)
             result[y, x] = np.sum(area * final_kernel)
             # TO DO !!
     return result
-    return np.array(src, copy=True)
+
 
 
 def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
@@ -236,7 +241,6 @@ def denoise_image(
     Denoising, with parameters specifically tweaked to the supported noise types.
     """
     # TO DO !!
-
     if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER:
         if noise_type is NoiseType.NOISE_TYPE_1:
             return average_filter(src, 5)
@@ -258,12 +262,12 @@ def denoise_image(
             return bilateral_filter(src, 9, 2, 125.0)
         raise ValueError("Unhandled noise type!")
 
-    # if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_NLM_FILTER:
-    #     if noise_type is NoiseType.NOISE_TYPE_1:
-    #         return nlm_filter(src, 5, 20.0)
-    #     if noise_type is NoiseType.NOISE_TYPE_2:
-    #         return nlm_filter(src, 5, 20.0)
-    #     raise ValueError("Unhandled noise type!")
+    if noise_reduction_algorithm is NoiseReductionAlgorithm.NR_NLM_FILTER:
+        if noise_type is NoiseType.NOISE_TYPE_1:
+            return nlm_filter(src, 5, 20.0)
+        if noise_type is NoiseType.NOISE_TYPE_2:
+            return nlm_filter(src, 5, 20.0)
+        raise ValueError("Unhandled noise type!")
 
     raise ValueError("Unhandled filter type!")
 
