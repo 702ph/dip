@@ -135,7 +135,7 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
             area = padded_image[y:y+k_size, x:x+k_size]
             for ky in range(k_size):
                 for kx in range(k_size):
-                    weightrad = 1 / (2*np.pi*sigma_radiometric**2)*np.exp(
+                    weightrad = (1 / (2*np.pi*sigma_radiometric**2))*np.exp(
                         - (((area[ky,kx]-area[center[0],center[1]])**2) / (2*sigma_radiometric**2))
                     )
                     r_w[ky,kx] = weightrad
