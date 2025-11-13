@@ -76,7 +76,7 @@ def average_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     for y in range(height):
         for x in range(width):
             crapped = padded_src[y:y+k_size, x:x+k_size]
-            filtered_img[y,x] = spatial_convolution(crapped, kernel)
+            # filtered_img[y,x] = spatial_convolution(crapped, kernel)
 
     return np.array(filtered_img, copy=True)
 
@@ -97,7 +97,7 @@ def median_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     for y in range(height):
         for x in range(width):
             crapped = padded_src[y:y+k_size, x:x+k_size]
-            filtered_img[y,x] = np.median(crapped).astype(np.uint8)
+            # filtered_img[y,x] = np.median(crapped).astype(np.uint8)
 
     return np.array(filtered_img, copy=True)
 
@@ -137,7 +137,7 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
             # combine kernels
             kernel = spatial_kernel*radiometric_kernel
             kernel /= kernel.sum() #normalization
-            filtered_img[y,x] = spatial_convolution(crapped, kernel)
+            # filtered_img[y,x] = spatial_convolution(crapped, kernel)
 
     return np.array(filtered_img, copy=True)
 
