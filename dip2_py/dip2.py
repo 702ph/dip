@@ -211,7 +211,12 @@ def choose_best_algorithm(noise_type: NoiseType) -> NoiseReductionAlgorithm:
     Chooses the right algorithm for the given noise type.
     """
     # TO DO !!
-    raise NotImplementedError("Student implementation missing")
+    if noise_type == NoiseType.NOISE_TYPE_1: # Impulse noise
+        return NoiseReductionAlgorithm.NR_MEDIAN_FILTER
+    elif noise_type == NoiseType.NOISE_TYPE_2: # Gaussian noise
+        return NoiseReductionAlgorithm.NR_BILATERAL_FILTER
+    else:
+        raise ValueError("Unknown noise type")
 
 
 def denoise_image(
