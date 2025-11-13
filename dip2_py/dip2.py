@@ -52,7 +52,12 @@ def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """
     # TO DO !!
     # result = ((src * np.flip(kernel)).sum()/kernel.size).astype(np.uint8)
-    result = ((src * np.flip(kernel)).sum()).astype(np.uint8)
+    #print('size src: ', np.shape(src))
+    #print('size kernel: ', np.shape(kernel))
+    flipped_kernel = np.fliplr(np.flipud(kernel))
+    
+
+    result = ((src * np.transpose(kernel)).sum())#.astype(np.uint8)
     return np.array(result, copy=True)
 
 
