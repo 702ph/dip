@@ -96,8 +96,14 @@ def median_filter(src: np.ndarray, k_size: int) -> np.ndarray:
     for y in range(src_h):
         for x in range(src_w):
             region = padded_src[y:y+k_size , x:x+k_size]
-            region.flatten()
-            result[y,x] = np.median(region)
+            if x == 5 and y == 5:
+                print(region.flatten())
+            #region = sorted(region)
+            flat_region = region.flatten()
+            sorted_region = np.array(sorted((flat_region)))
+            if x == 5 and y == 5:
+                print('after sort: ',sorted_region)
+            result[y,x] = np.median(sorted_region)
             
     # TO DO !!
     return result
@@ -117,7 +123,7 @@ def bilateral_filter(src: np.ndarray, k_size: int, sigma_spatial: float, sigma_r
     center = [k_size//2, k_size//2]
     for y in range(k_size):
         for x in range(k_size):
-            weight = 1/(2*np.pi*np.square(sigma_spatial))*np.exp(- (np.square(y-center[0])+np.square(x-center[1])) / (2*np.square(sigma_spatial) ))
+            weight = (1/(2*np.pi*np.square(sigma_spatial)))*np.exp(- (np.square(y-center[0])+np.square(x-center[1])) / (2*np.square(sigma_spatial) ))
             spatialmat[y,x] = weight
     
     #print(spatialmat)
