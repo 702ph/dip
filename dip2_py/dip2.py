@@ -198,7 +198,6 @@ def nlm_filter(src: np.ndarray, search_size: int, sigma: float) -> np.ndarray:
             weighted_pixel_sum = 0.0
             for y_s in range(search_size):
                 for x_s in range(search_size):
-                    # todo
                     patch = padded_search_window[y_s:(y_s + patch_size), x_s:(x_s + patch_size)]
                     patch_mean = patch.mean()
                     distance = (patch_mean - center_patch_mean) ** 2
@@ -220,16 +219,12 @@ def choose_best_algorithm(noise_type: NoiseType) -> NoiseReductionAlgorithm:
     Chooses the right algorithm for the given noise type.
     """
     # TO DO !!
-
     match noise_type:
         case NoiseType.NOISE_TYPE_1:
             return NoiseReductionAlgorithm.NR_MEDIAN_FILTER
         case NoiseType.NOISE_TYPE_2:
             return NoiseReductionAlgorithm.NR_BILATERAL_FILTER
-        case NoiseType.NOISE_TYPE_2:
-            return NoiseReductionAlgorithm.NR_MOVING_AVERAGE_FILTER
 
-    raise NotImplementedError("Student implementation missing")
 
 
 def denoise_image(
