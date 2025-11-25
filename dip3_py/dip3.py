@@ -39,6 +39,15 @@ def create_gaussian_kernel_1d(k_size: int) -> np.ndarray:
 def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
     """Generates 2D Gaussian filter kernel of given size."""
     # TO DO !!!
+
+    # from bilateral
+    # spatial kernel
+    # distances = np.zeros((k_size,k_size), dtype=float)
+    # kernel_center = int(k_size/2)
+    # for y in range(k_size):
+    #     for x in range(k_size):
+    #         distances[y,x] = (x-kernel_center)**2 + (y-kernel_center)**2
+    # spatial_kernel = (1/(2*np.pi*sigma_spatial**2))* np.exp(-distances/(2*sigma_spatial**2))
     return np.zeros((k_size, k_size), dtype=np.float32)
 
 
