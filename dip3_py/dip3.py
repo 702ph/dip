@@ -78,7 +78,23 @@ def sat_filter(image: np.ndarray, size: int) -> np.ndarray:
 def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Convolution in spatial domain."""
     # Hopefully already DONE, copy from last homework
-    return np.array(src, copy=True)
+    # TO DO !!
+    flipkernel = np.flipud(np.fliplr(kernel))
+
+    src_h, src_w = src.shape
+    kernel_h, kernel_w = kernel.shape
+    padding_height = kernel_h // 2
+    padding_width = kernel_w // 2
+
+    padded_image = np.pad(src, ((padding_height,), (padding_width,)), "reflect")
+    result = np.zeros_like(src, dtype=float)
+
+    for y in range(src_h):
+        for x in range(src_w):
+            region = padded_image[y:y + kernel_h, x:x + kernel_w]
+            result[y, x] = np.sum(region * flipkernel)
+    # return result
+    return np.array(result, copy=True)
 
 
 def usm(image: np.ndarray, filter_mode: FilterMode, size: int, thresh: float, scale: float) -> np.ndarray:
