@@ -33,6 +33,9 @@ filter_mode_names: Dict[FilterMode, str] = {
 def create_gaussian_kernel_1d(k_size: int) -> np.ndarray:
     """Generates 1D Gaussian filter kernel of given size."""
     # TO DO !!!
+    mu = int(k_size/2) #kernel center
+    sigma = int(k_size/5) # taken from the slide
+
     return np.zeros((1, k_size), dtype=np.float32)
 
 
@@ -40,15 +43,46 @@ def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
     """Generates 2D Gaussian filter kernel of given size."""
     # TO DO !!!
 
-    # from bilateral
-    # spatial kernel
-    # distances = np.zeros((k_size,k_size), dtype=float)
-    # kernel_center = int(k_size/2)
+    mu = int(k_size/2) #kernel center
+    sigma = int(k_size/5) # taken from the slide
+
+    # spatial kernel from bilateral filter implementation
     # for y in range(k_size):
     #     for x in range(k_size):
-    #         distances[y,x] = (x-kernel_center)**2 + (y-kernel_center)**2
-    # spatial_kernel = (1/(2*np.pi*sigma_spatial**2))* np.exp(-distances/(2*sigma_spatial**2))
-    return np.zeros((k_size, k_size), dtype=np.float32)
+    #         distances[y,x] = (x-mu)**2 + (y-mu)**2
+    # spatial_kernel = (1/(2*np.pi*sigma**2))* np.exp(-distances/(2*sigma**2))
+
+
+    # improved implementation
+    y, x = np.ogrid[-mu:mu + 1, -mu:mu + 1]
+    distances_sq = x ** 2 + y ** 2
+    #e.g. mu = 2
+    # y, x = np.ogrid[-mu:mu + 1, -mu:mu + 1]
+    # y
+    # array([[-2],
+    #        [-1],
+    #        [0],
+    #        [1],
+    #        [2]])
+    # x
+    # array([[-2, -1, 0, 1, 2]])
+    # distances_sq = x ** 2 + y ** 2
+
+    # distances_sq
+    # array([[8, 5, 4, 5, 8],
+    #        [5, 2, 1, 2, 5],
+    #        [4, 1, 0, 1, 4],
+    #        [5, 2, 1, 2, 5],
+    #        [8, 5, 4, 5, 8]])
+
+    # kernel with (1.0 / (2 * np.pi * sigma ** 2)) part
+    # spatial_kernel = (1.0 / (2 * np.pi * sigma ** 2)) * np.exp(-distances_sq / (2 * sigma ** 2))
+
+    # kernel normalization at the end
+    spatial_kernel =  np.exp(-distances_sq / (2 * sigma ** 2))
+    spatial_kernel /= np.sum(spatial_kernel) # to ensure sum to exactly 1.0
+
+    return spatial_kernel
 
 
 def circ_shift(image: np.ndarray, dx: int, dy: int) -> np.ndarray:
