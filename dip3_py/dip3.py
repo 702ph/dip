@@ -11,7 +11,7 @@ from enum import Enum, auto
 from typing import Dict
 
 import numpy as np
-
+import cv2
 
 class FilterMode(Enum):
     """Supported convolution backends."""
@@ -95,16 +95,28 @@ def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
     return spatial_kernel
 
 
+
 def circ_shift(image: np.ndarray, dx: int, dy: int) -> np.ndarray:
     """Perform a circular shift in (dx, dy) direction."""
     # TO DO !!!
     return np.array(image, copy=True)
 
 
+
 def frequency_convolution(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Performs convolution by multiplication in frequency domain."""
     # TO DO !!!
-    return np.array(image, copy=True)
+    src_h, src_w = src.shape
+    kernel_h, kernel_w = kernel.shape
+    padding_height = kernel_h // 2
+    padding_width = kernel_w // 2
+
+    padded_image = np.pad(src, ((padding_height,), (padding_width,)), "reflect")
+    result = np.zeros_like(src, dtype=float)
+
+
+    return np.array(result, copy=True)
+
 
 
 def separable_filter(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
