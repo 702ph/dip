@@ -99,21 +99,39 @@ def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
 def circ_shift(image: np.ndarray, dx: int, dy: int) -> np.ndarray:
     """Perform a circular shift in (dx, dy) direction."""
     # TO DO !!!
-    return np.array(image, copy=True)
+    """Perform a circular shift in (dx, dy) direction."""
+    h, w = image.shape
+    shifted = np.zeros_like(image)
+    for i in range(h):
+        for j in range(w):
+            new_i = (i + dy) % h
+            new_j = (j + dx) % w
+            shifted[new_i, new_j] = image[i, j]
+    return np.array(shifted, copy=True)
 
 
 
 def frequency_convolution(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Performs convolution by multiplication in frequency domain."""
     # TO DO !!!
-    src_h, src_w = src.shape
     kernel_h, kernel_w = kernel.shape
-    padding_height = kernel_h // 2
-    padding_width = kernel_w // 2
 
-    padded_image = np.pad(src, ((padding_height,), (padding_width,)), "reflect")
-    result = np.zeros_like(src, dtype=float)
+    # in exercise slide: "Copy the kernel into a larger matrix"
+    padded_kernel = np.zeros_like(image, dtype=np.float32)
+    dx = -kernel_w // 2
+    dy = -kernel_h // 2
+    padded_kernel[0 : kernel_h, 0:kernel_h] = kernel
+    shifted_kernel = circ_shift(kernel, dx, dy)
 
+    #Fourier Transform: from spatial to frequency domain
+    dft_image = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_kernel = cv2.dft(shifted_kernel, flags=cv2.DFT_COMPLEX_OUTPUT)
+
+    # convolution
+    dft_result = cv2.mulSpectrums(dft_image, dft_kernel, 0)
+
+    #Inverse Fourier
+    result = cv2.idft(dft_result, flags=cv2.DFT_SCALE | cv2.DFT_REAL_OUTPUT)
 
     return np.array(result, copy=True)
 
@@ -155,6 +173,7 @@ def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
 
 def usm(image: np.ndarray, filter_mode: FilterMode, size: int, thresh: float, scale: float) -> np.ndarray:
     """Performs unsharp masking to enhance image structures."""
+    """ size: kernel size"""
     # TO DO !!!
     # use smooth_image(...) for smoothing
     return np.array(image, copy=True)
