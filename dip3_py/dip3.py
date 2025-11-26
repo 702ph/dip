@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import sys
 from enum import Enum, auto
 from typing import Dict
 
@@ -45,8 +46,7 @@ def create_gaussian_kernel_1d(k_size: int) -> np.ndarray:
     spatial_kernel =  np.exp(-distances_sq / (2 * sigma ** 2))
     spatial_kernel /= np.sum(spatial_kernel) # to ensure sum to exactly 1.0
     spatial_kernel = spatial_kernel.reshape(1, -1) # test expect a shape of (1, N)
-    return spatial_kernel
-
+    return np.array(spatial_kernel, copy=True)
 
 
 def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
@@ -61,7 +61,6 @@ def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
     #     for x in range(k_size):
     #         distances[y,x] = (x-mu)**2 + (y-mu)**2
     # spatial_kernel = (1/(2*np.pi*sigma**2))* np.exp(-distances/(2*sigma**2))
-
 
     # improved implementation
     y, x = np.ogrid[-mu:mu + 1, -mu:mu + 1]
@@ -91,8 +90,7 @@ def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
     # kernel normalization at the end
     spatial_kernel =  np.exp(-distances_sq / (2 * sigma ** 2))
     spatial_kernel /= np.sum(spatial_kernel) # to ensure sum to exactly 1.0
-
-    return spatial_kernel
+    return np.array(spatial_kernel, copy=True)
 
 
 
@@ -120,11 +118,11 @@ def frequency_convolution(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     padded_kernel = np.zeros_like(image, dtype=np.float32)
     dx = -kernel_w // 2
     dy = -kernel_h // 2
-    padded_kernel[0 : kernel_h, 0:kernel_h] = kernel
-    shifted_kernel = circ_shift(kernel, dx, dy)
+    padded_kernel[0 : kernel_h, 0:kernel_w] = kernel
+    shifted_kernel = circ_shift(padded_kernel, dx, dy)
 
     #Fourier Transform: from spatial to frequency domain
-    dft_image = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_image = cv2.dft(image, flags=cv2.DFT_COMPLEX_OUTPUT)
     dft_kernel = cv2.dft(shifted_kernel, flags=cv2.DFT_COMPLEX_OUTPUT)
 
     # convolution
@@ -133,20 +131,28 @@ def frequency_convolution(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     #Inverse Fourier
     result = cv2.idft(dft_result, flags=cv2.DFT_SCALE | cv2.DFT_REAL_OUTPUT)
 
-    return np.array(result, copy=True)
+    # return np.array(result, copy=True)
+    return np.clip(result, 0, 255)
 
 
 
 def separable_filter(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Convolution in spatial domain by separable filters."""
     # TO DO !!!
-    return np.array(image, copy=True)
+    # filtering in x
+    horizontal = spatial_convolution(image, kernel)
+
+    #filtering in y
+    kernel_transposed = kernel.T
+    result = spatial_convolution(horizontal, kernel_transposed)
+    return np.array(result, copy=True)
 
 
 def sat_filter(image: np.ndarray, size: int) -> np.ndarray:
     """Convolution in spatial domain using integral images."""
     # TO DO !!!
     return np.array(image, copy=True)
+
 
 
 def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
@@ -176,7 +182,12 @@ def usm(image: np.ndarray, filter_mode: FilterMode, size: int, thresh: float, sc
     """ size: kernel size"""
     # TO DO !!!
     # use smooth_image(...) for smoothing
-    return np.array(image, copy=True)
+    smoothed = smooth_image(image, size, filter_mode)
+
+    # mask: extract edges
+
+
+    return np.array(result, copy=True)
 
 
 def smooth_image(image: np.ndarray, size: int, filter_mode: FilterMode) -> np.ndarray:
