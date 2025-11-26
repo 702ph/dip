@@ -182,12 +182,24 @@ def usm(image: np.ndarray, filter_mode: FilterMode, size: int, thresh: float, sc
     """ size: kernel size"""
     # TO DO !!!
     # use smooth_image(...) for smoothing
-    smoothed = smooth_image(image, size, filter_mode)
+
+    # variable name from exercise slide
+    I0 = image
+    I1 = smooth_image(image, size, filter_mode)
 
     # mask: extract edges
+    I2 = I0 - I1
 
+    # act only on pixel where difference is larger than threshold T
+    condition = np.abs(I2) > thresh
 
-    return np.array(result, copy=True)
+    # scale difference to further enhance edges
+    I3 = np.where(condition, scale * I2, 0)
+
+    # add to original image
+    I4 = I0 + I3
+
+    return np.array(I4.astype(image.dtype), copy=True)
 
 
 def smooth_image(image: np.ndarray, size: int, filter_mode: FilterMode) -> np.ndarray:
