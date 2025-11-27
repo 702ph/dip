@@ -7,11 +7,12 @@
 
 from __future__ import annotations
 
+import sys
 from enum import Enum, auto
 from typing import Dict
 
 import numpy as np
-
+import cv2
 
 class FilterMode(Enum):
     """Supported convolution backends."""
@@ -33,31 +34,131 @@ filter_mode_names: Dict[FilterMode, str] = {
 def create_gaussian_kernel_1d(k_size: int) -> np.ndarray:
     """Generates 1D Gaussian filter kernel of given size."""
     # TO DO !!!
-    return np.zeros((1, k_size), dtype=np.float32)
+    mu = int(k_size/2) #kernel center
+    sigma = int(k_size/5) # taken from the slide
+
+    coordinates = np.arange(-mu, mu + 1)
+    
+    distances_sq = coordinates ** 2
+    # e.g.
+    # np.arange(-mu, mu + 1)
+    # array([-2, -1, 0, 1, 2])
+    scalar = 1/(2*np.pi*sigma)
+
+    spatial_kernel =  scalar*np.exp(-distances_sq / (2 * sigma ** 2))
+    spatial_kernel /= np.sum(spatial_kernel) # to ensure sum to exactly 1.0
+    spatial_kernel = spatial_kernel.reshape(1, -1) # test expect a shape of (1, N)
+    return np.array(spatial_kernel, copy=True)
 
 
 def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
     """Generates 2D Gaussian filter kernel of given size."""
     # TO DO !!!
-    return np.zeros((k_size, k_size), dtype=np.float32)
+
+    mu = int(k_size/2) #kernel center
+    sigma = int(k_size/5) # taken from the slide
+
+    # spatial kernel from bilateral filter implementation
+    # for y in range(k_size):
+    #     for x in range(k_size):
+    #         distances[y,x] = (x-mu)**2 + (y-mu)**2
+    # spatial_kernel = (1/(2*np.pi*sigma**2))* np.exp(-distances/(2*sigma**2))
+
+    # improved implementation
+    y, x = np.ogrid[-mu:mu + 1, -mu:mu + 1]
+    distances_sq = x ** 2 + y ** 2
+    #e.g. mu = 2
+    # y, x = np.ogrid[-mu:mu + 1, -mu:mu + 1]
+    # y
+    # array([[-2],
+    #        [-1],
+    #        [0],
+    #        [1],
+    #        [2]])
+    # x
+    # array([[-2, -1, 0, 1, 2]])
+    # distances_sq = x ** 2 + y ** 2
+
+    # distances_sq
+    # array([[8, 5, 4, 5, 8],
+    #        [5, 2, 1, 2, 5],
+    #        [4, 1, 0, 1, 4],
+    #        [5, 2, 1, 2, 5],
+    #        [8, 5, 4, 5, 8]])
+
+    # kernel with (1.0 / (2 * np.pi * sigma ** 2)) part
+    # spatial_kernel = (1.0 / (2 * np.pi * sigma ** 2)) * np.exp(-distances_sq / (2 * sigma ** 2))
+
+    # kernel normalization at the end
+    scalar = 1/(2*np.pi*sigma**2)
+    #TODO
+    spatial_kernel =  np.exp(-distances_sq / (2 * sigma ** 2))
+    spatial_kernel /= np.sum(spatial_kernel) # to ensure sum to exactly 1.0
+    return np.array(spatial_kernel, copy=True)
+
 
 
 def circ_shift(image: np.ndarray, dx: int, dy: int) -> np.ndarray:
     """Perform a circular shift in (dx, dy) direction."""
     # TO DO !!!
-    return np.array(image, copy=True)
+    """Perform a circular shift in (dx, dy) direction."""
+    h, w = image.shape
+    shifted = np.zeros_like(image)
+    for i in range(h):
+        for j in range(w):
+            new_i = (i + dy) % h
+            new_j = (j + dx) % w
+            shifted[new_i, new_j] = image[i, j]
+    return np.array(shifted, copy=True)
+
 
 
 def frequency_convolution(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Performs convolution by multiplication in frequency domain."""
     # TO DO !!!
-    return np.array(image, copy=True)
+    kernel_h, kernel_w = kernel.shape
+    image_w, image_h = image.shape
+    #print('kernel: ', kernel)
+    print(-2 % 5)
+    # in exercise slide: "Copy the kernel into a larger matrix"
+    padded_kernel = np.zeros_like(image, dtype=np.float32)
+    dx = -int(kernel_w / 2)
+    dy = -int(kernel_h / 2)
+    #dx = -image_w // 2
+    #dy = -image_h // 2
+
+    padded_kernel[0 : kernel_h, 0:kernel_w] = kernel
+    #print('len padded: ',len(padded_kernel))
+    #print('dx: ', dx)
+    #print('kernel_w: ', kernel_w)
+    shifted_kernel = circ_shift(padded_kernel, dx, dy)
+    #print('shifted_kernel: ', shifted_kernel)
+
+    #Fourier Transform: from spatial to frequency domain
+    dft_image = cv2.dft(image, flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_kernel = cv2.dft(shifted_kernel, flags=cv2.DFT_COMPLEX_OUTPUT)
+
+    # convolution
+    dft_result = cv2.mulSpectrums(dft_image, dft_kernel, 0)
+
+    #Inverse Fourier
+    result = cv2.idft(dft_result, flags=cv2.DFT_SCALE | cv2.DFT_REAL_OUTPUT)
+
+    # return np.array(result, copy=True)
+    return np.clip(result, 0, 255)
+
 
 
 def separable_filter(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Convolution in spatial domain by separable filters."""
     # TO DO !!!
-    return np.array(image, copy=True)
+    # filtering in x
+    horizontal = spatial_convolution(image, kernel)
+
+    #filtering in y
+    kernel_transposed = kernel.T
+    result = spatial_convolution(horizontal, kernel_transposed)
+    return np.array(result, copy=True)
 
 
 def sat_filter(image: np.ndarray, size: int) -> np.ndarray:
@@ -66,17 +167,52 @@ def sat_filter(image: np.ndarray, size: int) -> np.ndarray:
     return np.array(image, copy=True)
 
 
+
 def spatial_convolution(src: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Convolution in spatial domain."""
     # Hopefully already DONE, copy from last homework
-    return np.array(src, copy=True)
+    # TO DO !!
+    flipkernel = np.flipud(np.fliplr(kernel))
+
+    src_h, src_w = src.shape
+    kernel_h, kernel_w = kernel.shape
+    padding_height = kernel_h // 2
+    padding_width = kernel_w // 2
+
+    padded_image = np.pad(src, ((padding_height,), (padding_width,)), "reflect")
+    result = np.zeros_like(src, dtype=float)
+
+    for y in range(src_h):
+        for x in range(src_w):
+            region = padded_image[y:y + kernel_h, x:x + kernel_w]
+            result[y, x] = np.sum(region * flipkernel)
+    # return result
+    return np.array(result, copy=True)
 
 
 def usm(image: np.ndarray, filter_mode: FilterMode, size: int, thresh: float, scale: float) -> np.ndarray:
     """Performs unsharp masking to enhance image structures."""
+    """ size: kernel size"""
     # TO DO !!!
     # use smooth_image(...) for smoothing
-    return np.array(image, copy=True)
+
+    # variable name from exercise slide
+    I0 = image
+    I1 = smooth_image(image, size, filter_mode)
+
+    # mask: extract edges
+    I2 = I0 - I1
+
+    # act only on pixel where difference is larger than threshold T
+    condition = np.abs(I2) > thresh
+
+    # scale difference to further enhance edges
+    I3 = np.where(condition, scale * I2, 0)
+
+    # add to original image
+    I4 = I0 + I3
+
+    return np.array(I4.astype(image.dtype), copy=True)
 
 
 def smooth_image(image: np.ndarray, size: int, filter_mode: FilterMode) -> np.ndarray:
