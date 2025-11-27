@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import Axes3D
 # =============================
 # Parameters
 # =============================
-image_sizes = np.arange(10, 501, 10)    # 10,20,...,500
+image_sizes = np.arange(10, 101, 10)    # 10,20,...,500
 kernel_sizes = np.arange(10, 101, 10)     # 3,5,7,...,99   (not larger than smallest image)
 
 # Time-matrices (image_size × kernel_size)
@@ -32,6 +32,7 @@ for i, imsize in enumerate(image_sizes):
 
         # Generate random floating-point kernel
         kernel = np.random.rand(ksize, ksize).astype(np.float32)
+        kernel_for_seperable = np.random.rand(ksize).reshape(1, -1).T.astype(np.float32)
 
         # ------------- spatial convolution -------------
         start = time.time()
