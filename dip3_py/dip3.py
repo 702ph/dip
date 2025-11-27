@@ -119,13 +119,13 @@ def frequency_convolution(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     kernel_h, kernel_w = kernel.shape
     image_w, image_h = image.shape
     #print('kernel: ', kernel)
-    #print(-2 % 5)
+    print(-2 % 5)
     # in exercise slide: "Copy the kernel into a larger matrix"
     padded_kernel = np.zeros_like(image, dtype=np.float32)
-    #dx = -kernel_w // 2
-    #dy = -kernel_h // 2
-    dx = -image_w // 2
-    dy = -image_h // 2
+    dx = -int(kernel_w / 2)
+    dy = -int(kernel_h / 2)
+    #dx = -image_w // 2
+    #dy = -image_h // 2
 
     padded_kernel[0 : kernel_h, 0:kernel_w] = kernel
     #print('len padded: ',len(padded_kernel))
