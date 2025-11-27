@@ -8,8 +8,8 @@ from mpl_toolkits.mplot3d import Axes3D
 # =============================
 # Parameters
 # =============================
-image_sizes = np.arange(10, 100, 10)    # 10,20,...,500
-kernel_sizes = np.arange(3, 101, 2)     # 3,5,7,...,99   (not larger than smallest image)
+image_sizes = np.arange(10, 501, 10)    # 10,20,...,500
+kernel_sizes = np.arange(10, 101, 10)     # 3,5,7,...,99   (not larger than smallest image)
 
 # Time-matrices (image_size × kernel_size)
 T_spatial   = np.zeros((len(image_sizes), len(kernel_sizes)))
@@ -48,7 +48,9 @@ for i, imsize in enumerate(image_sizes):
         start = time.time()
         separable_filter(img, kernel_for_seperable)
         T_separable[i, j] = time.time() - start
-
+        
+        print('j: ',j)
+    print('i: ',i)
 
 
 # =============================
@@ -76,7 +78,7 @@ def plot_surface(Z, title):
     # Set the labels to be squared values
     yticklabels = [int(y**2) for y in yticks]
     ax.set_yticklabels(yticklabels)
-
+    plt.savefig(f'{title}.png')
     plt.show()
     plt.pause(1)
 
@@ -84,6 +86,10 @@ def plot_surface(Z, title):
 # =============================
 # Plot all three surfaces
 # =============================
+
+
 plot_surface(T_spatial,   "Spatial Convolution Time")
+#plt.savefig(spatial_plot, 'Spatial_Convolution.png')
 plot_surface(T_frequency, "Frequency-Domain Convolution Time")
+
 plot_surface(T_separable, "Separable Filter Time")
