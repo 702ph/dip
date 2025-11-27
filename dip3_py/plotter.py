@@ -46,7 +46,7 @@ for i, imsize in enumerate(image_sizes):
         # ------------- separable filter (if kernel is separable) -------------
         # For benchmarking: just call function anyway
         start = time.time()
-        separable_filter(img, kernel)
+        separable_filter(img, kernel_for_seperable)
         T_separable[i, j] = time.time() - start
 
 
