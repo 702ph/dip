@@ -32,7 +32,7 @@ for i, imsize in enumerate(image_sizes):
 
         # Generate random floating-point kernel
         kernel = np.random.rand(ksize, ksize).astype(np.float32)
-
+        kernel_for_seperable = np.random.rand(1,ksize).astype(np.float32)
         # ------------- spatial convolution -------------
         start = time.time()
         spatial_convolution(img, kernel)
