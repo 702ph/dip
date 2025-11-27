@@ -38,12 +38,14 @@ def create_gaussian_kernel_1d(k_size: int) -> np.ndarray:
     sigma = int(k_size/5) # taken from the slide
 
     coordinates = np.arange(-mu, mu + 1)
+    
     distances_sq = coordinates ** 2
     # e.g.
     # np.arange(-mu, mu + 1)
     # array([-2, -1, 0, 1, 2])
+    scalar = 1/(2*np.pi*sigma)
 
-    spatial_kernel =  np.exp(-distances_sq / (2 * sigma ** 2))
+    spatial_kernel =  scalar*np.exp(-distances_sq / (2 * sigma ** 2))
     spatial_kernel /= np.sum(spatial_kernel) # to ensure sum to exactly 1.0
     spatial_kernel = spatial_kernel.reshape(1, -1) # test expect a shape of (1, N)
     return np.array(spatial_kernel, copy=True)
@@ -88,6 +90,8 @@ def create_gaussian_kernel_2d(k_size: int) -> np.ndarray:
     # spatial_kernel = (1.0 / (2 * np.pi * sigma ** 2)) * np.exp(-distances_sq / (2 * sigma ** 2))
 
     # kernel normalization at the end
+    scalar = 1/(2*np.pi*sigma**2)
+    #TODO
     spatial_kernel =  np.exp(-distances_sq / (2 * sigma ** 2))
     spatial_kernel /= np.sum(spatial_kernel) # to ensure sum to exactly 1.0
     return np.array(spatial_kernel, copy=True)
@@ -113,13 +117,22 @@ def frequency_convolution(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """Performs convolution by multiplication in frequency domain."""
     # TO DO !!!
     kernel_h, kernel_w = kernel.shape
-
+    image_w, image_h = image.shape
+    #print('kernel: ', kernel)
+    print(-2 % 5)
     # in exercise slide: "Copy the kernel into a larger matrix"
     padded_kernel = np.zeros_like(image, dtype=np.float32)
-    dx = -kernel_w // 2
-    dy = -kernel_h // 2
+    #dx = -kernel_w // 2
+    #dy = -kernel_h // 2
+    dx = -image_w // 2
+    dy = -image_h // 2
+
     padded_kernel[0 : kernel_h, 0:kernel_w] = kernel
+    print('len padded: ',len(padded_kernel))
+    print('dx: ', dx)
+    print('kernel_w: ', kernel_w)
     shifted_kernel = circ_shift(padded_kernel, dx, dy)
+    #print('shifted_kernel: ', shifted_kernel)
 
     #Fourier Transform: from spatial to frequency domain
     dft_image = cv2.dft(image, flags=cv2.DFT_COMPLEX_OUTPUT)
