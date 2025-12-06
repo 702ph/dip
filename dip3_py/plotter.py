@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import Axes3D
 # =============================
 # Parameters
 # =============================
-image_sizes = np.arange(10, 101, 10)    # 10,20,...,500
+image_sizes = np.arange(10, 501, 10)    # 10,20,...,500
 kernel_sizes = np.arange(10, 101, 10)     # 3,5,7,...,99   (not larger than smallest image)
 
 # Time-matrices (image_size × kernel_size)
@@ -45,11 +45,11 @@ for i, imsize in enumerate(image_sizes):
         T_frequency[i, j] = time.time() - start
 
         # ------------- separable filter (if kernel is separable) -------------
-        # For benchmarking: just call function anyway
+        # # For benchmarking: just call function anyway
         start = time.time()
         separable_filter(img, kernel_for_seperable)
         T_separable[i, j] = time.time() - start
-        
+        #
         print('j: ',j)
     print('i: ',i)
 
@@ -90,7 +90,5 @@ def plot_surface(Z, title):
 
 
 plot_surface(T_spatial,   "Spatial Convolution Time")
-#plt.savefig(spatial_plot, 'Spatial_Convolution.png')
 plot_surface(T_frequency, "Frequency-Domain Convolution Time")
-
 plot_surface(T_separable, "Separable Filter Time")
