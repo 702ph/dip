@@ -75,8 +75,15 @@ def circ_shift(img_in: np.ndarray, shift_x: int, shift_y: int) -> np.ndarray:
         
     TODO: Implement this function
     """
-    # TODO: Implement circular shift
-    return img_in.copy()
+    h, w = img_in.shape
+    shifted = np.zeros_like(img_in)
+    for i in range(h):
+        for j in range(w):
+            new_i = (i + shift_y) % h
+            new_j = (j + shift_x) % w
+            shifted[new_i, new_j] = img_in[i, j]
+    return np.array(shifted, copy=True)
+    #return img_in.copy()
 
 
 def dft_real2complex(img_in: np.ndarray) -> np.ndarray:
@@ -92,7 +99,11 @@ def dft_real2complex(img_in: np.ndarray) -> np.ndarray:
     TODO: Implement this function
     """
     # TODO: Implement forward DFT
-    return np.zeros(img_in.shape, dtype=np.complex64)
+
+    dft_complex = np.fft.fft2(img_in).astype(np.complex64)
+
+    return dft_complex
+    #return np.zeros(img_in.shape, dtype=np.complex64)
 
 
 def idft_complex2real(img_in: np.ndarray) -> np.ndarray:
@@ -108,7 +119,9 @@ def idft_complex2real(img_in: np.ndarray) -> np.ndarray:
     TODO: Implement this function
     """
     # TODO: Implement inverse DFT
-    return np.zeros(img_in.shape, dtype=np.float32)
+    
+    return np.fft.ifft2(img_in).real.astype(np.float32)
+    
 
 
 def apply_filter(img_in: np.ndarray, filter_spectrum: np.ndarray) -> np.ndarray:
@@ -125,7 +138,8 @@ def apply_filter(img_in: np.ndarray, filter_spectrum: np.ndarray) -> np.ndarray:
     TODO: Implement this function
     """
     # TODO: Implement filter application (complex element-wise multiplication)
-    return img_in.copy()
+    return img_in * filter_spectrum
+    #return img_in.copy()
 
 
 def compute_inverse_filter(kernel: np.ndarray, eps: float) -> np.ndarray:
@@ -142,7 +156,17 @@ def compute_inverse_filter(kernel: np.ndarray, eps: float) -> np.ndarray:
     TODO: Implement this function
     """
     # TODO: Implement inverse filter computation
-    return np.ones(kernel.shape, dtype=np.complex64)
+    kernel = kernel.astype(np.float32)
+    kernel_complex = dft_real2complex(kernel)
+    magnitude = np.abs(kernel_complex)
+
+    inverse_filter=np.zeros_like(kernel_complex, dtype=np.complex64)
+    mask = magnitude > eps
+    inverse_filter[mask] = 1.0/kernel_complex[mask]
+
+    return inverse_filter
+
+    #return np.ones(kernel.shape, dtype=np.complex64)
 
 
 def inverse_filter(degraded: np.ndarray, kernel: np.ndarray, eps: float) -> np.ndarray:
@@ -160,7 +184,13 @@ def inverse_filter(degraded: np.ndarray, kernel: np.ndarray, eps: float) -> np.n
     TODO: Implement this function
     """
     # TODO: Implement inverse filtering
-    return degraded.copy()
+    G = dft_real2complex(degraded)
+    H_inv = compute_inverse_filter(kernel,eps)
+    F_hat = apply_filter(G,H_inv)
+    restored = idft_complex2real(F_hat)
+
+    return restored
+    #return degraded.copy()
 
 
 def compute_wiener_filter(kernel: np.ndarray, snr: float) -> np.ndarray:
@@ -177,7 +207,14 @@ def compute_wiener_filter(kernel: np.ndarray, snr: float) -> np.ndarray:
     TODO: Implement this function
     """
     # TODO: Implement Wiener filter computation
-    return np.ones(kernel.shape, dtype=np.complex64)
+    kernel = kernel.astype(np.float32)
+    H = dft_real2complex(kernel)
+    H_conj = np.conj(H)
+    magnitude_squared = np.abs(H)**2
+    W = H_conj/(magnitude_squared +1.0 / snr)
+
+    return W.astype(np.complex64)
+    #return np.ones(kernel.shape, dtype=np.complex64)
 
 
 def wiener_filter(degraded: np.ndarray, kernel: np.ndarray, snr: float) -> np.ndarray:
@@ -195,4 +232,9 @@ def wiener_filter(degraded: np.ndarray, kernel: np.ndarray, snr: float) -> np.nd
     TODO: Implement this function
     """
     # TODO: Implement Wiener filtering
-    return degraded.copy()
+    G = dft_real2complex(degraded)
+    W=compute_wiener_filter(kernel,snr)
+    F_hat = apply_filter(G,W)
+    restored = idft_complex2real(F_hat)
+    return restored
+    #return degraded.copy()
