@@ -157,6 +157,11 @@ def compute_inverse_filter(kernel: np.ndarray, eps: float) -> np.ndarray:
     """
     # TODO: Implement inverse filter computation
     kernel = kernel.astype(np.float32)
+
+
+    kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
+    
+    
     kernel_complex = dft_real2complex(kernel)
     magnitude = np.abs(kernel_complex)
 
@@ -208,6 +213,11 @@ def compute_wiener_filter(kernel: np.ndarray, snr: float) -> np.ndarray:
     """
     # TODO: Implement Wiener filter computation
     kernel = kernel.astype(np.float32)
+
+
+    kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
+
+
     H = dft_real2complex(kernel)
     H_conj = np.conj(H)
     magnitude_squared = np.abs(H)**2
