@@ -82,6 +82,9 @@ def circ_shift(img_in: np.ndarray, shift_x: int, shift_y: int) -> np.ndarray:
             new_i = (i + shift_y) % h
             new_j = (j + shift_x) % w
             shifted[new_i, new_j] = img_in[i, j]
+
+    # kernel_padded = np.roll(kernel_padded, -(kernel_size // 2), axis=0)
+    # kernel_padded = np.roll(kernel_padded, -(kernel_size // 2), axis=1)
     return np.array(shifted, copy=True)
     #return img_in.copy()
 
@@ -160,9 +163,10 @@ def compute_inverse_filter(kernel: np.ndarray, eps: float) -> np.ndarray:
 
 
     kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
-    
-    
+    # kernel_complex = dft_real2complex(kernel_shifted)
     kernel_complex = dft_real2complex(kernel)
+
+
     magnitude = np.abs(kernel_complex)
 
     inverse_filter=np.zeros_like(kernel_complex, dtype=np.complex64)
@@ -216,9 +220,10 @@ def compute_wiener_filter(kernel: np.ndarray, snr: float) -> np.ndarray:
 
 
     kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
-
-
+    # H = dft_real2complex(kernel_shifted)
     H = dft_real2complex(kernel)
+
+
     H_conj = np.conj(H)
     magnitude_squared = np.abs(H)**2
     W = H_conj/(magnitude_squared +1.0 / snr)
