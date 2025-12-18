@@ -102,8 +102,27 @@ def dft_real2complex(img_in: np.ndarray) -> np.ndarray:
     TODO: Implement this function
     """
     # TODO: Implement forward DFT
+    # dft_complex = np.fft.fft2(img_in).astype(np.complex64)
 
-    dft_complex = np.fft.fft2(img_in).astype(np.complex64)
+    def dft_1d(source: np.ndarray) -> np.ndarray:
+        result = np.empty_like(source)
+        N = source.size
+        for k in range(N):
+            k_N = k/N
+            for n in range(N):
+                result[k] += source[n] * np.exp(-2j * np.pi * k_N * n)
+        return result
+
+    def dft_2d(source: np.ndarray) -> np.ndarray:
+        result = np.empty_like(source)
+        X, Y = source.shape
+        for y in range(Y):
+            result[y, :] = dft_1d(source[y, :])
+        for x in range(X):
+            result[x, :] = dft_1d(source[x, :])
+        return result
+
+    dft_complex = dft_2d(img_in)
 
     return dft_complex
     #return np.zeros(img_in.shape, dtype=np.complex64)
