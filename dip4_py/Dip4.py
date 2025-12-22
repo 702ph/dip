@@ -240,23 +240,16 @@ def compute_wiener_filter(kernel: np.ndarray, snr: float) -> np.ndarray:
     Returns:
         Complex Wiener filter spectrum
         
-    TODO: Implement this function
     """
-    # TODO: Implement Wiener filter computation
+
     kernel = kernel.astype(np.float32)
-
-
-    kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
-    # H = dft_real2complex(kernel_shifted)
     H = dft_real2complex(kernel)
-
 
     H_conj = np.conj(H)
     magnitude_squared = np.abs(H)**2
-    W = H_conj/(magnitude_squared +1.0 / snr)
+    W = H_conj / (magnitude_squared + 1.0 / snr)
 
     return W.astype(np.complex64)
-    #return np.ones(kernel.shape, dtype=np.complex64)
 
 
 
