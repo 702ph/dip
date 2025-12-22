@@ -157,7 +157,7 @@ def idft_complex2real(img_in: np.ndarray) -> np.ndarray:
 
         return full_idft
 
-    # img_real =  np.fft.ifft2(img_in).real.astype(np.float32)
+    # idft_real =  np.fft.ifft2(img_in).real.astype(np.float32)
     idft_real = idft_2d(img_in).real.astype(np.float32)
     return idft_real
     
@@ -192,26 +192,21 @@ def compute_inverse_filter(kernel: np.ndarray, eps: float) -> np.ndarray:
     Returns:
         Complex inverse filter spectrum
         
-    TODO: Implement this function
     """
-    # TODO: Implement inverse filter computation
     kernel = kernel.astype(np.float32)
-
-
-    kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
-    # kernel_complex = dft_real2complex(kernel_shifted)
     kernel_complex = dft_real2complex(kernel)
-
-
+    
     magnitude = np.abs(kernel_complex)
-
-    inverse_filter=np.zeros_like(kernel_complex, dtype=np.complex64)
-    mask = magnitude > eps
-    inverse_filter[mask] = 1.0/kernel_complex[mask]
+    # T = eps * magnitude.max() # fail at UnitTest(test_compute_inverse_filter_thresholding), since max_val is 999(not max_val < 100) when T = 0.0001(eps=0.1 * mag.max=0.001)
+    T = max(eps * magnitude.max(), eps)
+    large = magnitude >= T
+    small = ~large
+    
+    inverse_filter = np.zeros_like(kernel_complex, dtype=np.complex64)
+    inverse_filter[large] = 1.0 / kernel_complex[large]
+    # inverse_filter[small] = 1.0 / T # fail at UnitTest(test_full_pipeline_inverse), since psnr is 2.X(not psnr > 5))
 
     return inverse_filter
-
-    #return np.ones(kernel.shape, dtype=np.complex64)
 
 
 def inverse_filter(degraded: np.ndarray, kernel: np.ndarray, eps: float) -> np.ndarray:
@@ -249,23 +244,17 @@ def compute_wiener_filter(kernel: np.ndarray, snr: float) -> np.ndarray:
     Returns:
         Complex Wiener filter spectrum
         
-    TODO: Implement this function
     """
-    # TODO: Implement Wiener filter computation
+
     kernel = kernel.astype(np.float32)
-
-
-    kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
-    # H = dft_real2complex(kernel_shifted)
     H = dft_real2complex(kernel)
-
 
     H_conj = np.conj(H)
     magnitude_squared = np.abs(H)**2
-    W = H_conj/(magnitude_squared +1.0 / snr)
+    W = H_conj / (magnitude_squared + 1.0 / snr)
 
     return W.astype(np.complex64)
-    #return np.ones(kernel.shape, dtype=np.complex64)
+
 
 
 def wiener_filter(degraded: np.ndarray, kernel: np.ndarray, snr: float) -> np.ndarray:
