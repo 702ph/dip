@@ -204,7 +204,6 @@ def compute_inverse_filter(kernel: np.ndarray, eps: float) -> np.ndarray:
     
     inverse_filter = np.zeros_like(kernel_complex, dtype=np.complex64)
     inverse_filter[large] = 1.0 / kernel_complex[large]
-    print(kernel_complex[large])
     # inverse_filter[small] = 1.0 / T # fail at UnitTest(test_full_pipeline_inverse), since psnr is 2.X(not psnr > 5))
 
     return inverse_filter
