@@ -192,26 +192,17 @@ def compute_inverse_filter(kernel: np.ndarray, eps: float) -> np.ndarray:
     Returns:
         Complex inverse filter spectrum
         
-    TODO: Implement this function
     """
-    # TODO: Implement inverse filter computation
     kernel = kernel.astype(np.float32)
-
-
-    kernel_shifted = circ_shift(kernel , -kernel.shape[0]//2, -kernel.shape[1]//2)
-    # kernel_complex = dft_real2complex(kernel_shifted)
     kernel_complex = dft_real2complex(kernel)
-
-
+    
     magnitude = np.abs(kernel_complex)
-
-    inverse_filter=np.zeros_like(kernel_complex, dtype=np.complex64)
-    mask = magnitude > eps
-    inverse_filter[mask] = 1.0/kernel_complex[mask]
+    mask = magnitude >= eps
+    
+    inverse_filter = np.zeros_like(kernel_complex, dtype=np.complex64)
+    inverse_filter[mask] = 1.0 / kernel_complex[mask]
 
     return inverse_filter
-
-    #return np.ones(kernel.shape, dtype=np.complex64)
 
 
 def inverse_filter(degraded: np.ndarray, kernel: np.ndarray, eps: float) -> np.ndarray:
@@ -266,6 +257,7 @@ def compute_wiener_filter(kernel: np.ndarray, snr: float) -> np.ndarray:
 
     return W.astype(np.complex64)
     #return np.ones(kernel.shape, dtype=np.complex64)
+
 
 
 def wiener_filter(degraded: np.ndarray, kernel: np.ndarray, snr: float) -> np.ndarray:
