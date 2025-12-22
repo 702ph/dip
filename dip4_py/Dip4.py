@@ -72,8 +72,6 @@ def circ_shift(img_in: np.ndarray, shift_x: int, shift_y: int) -> np.ndarray:
         
     Returns:
         Shifted image
-        
-    TODO: Implement this function
     """
     h, w = img_in.shape
     shifted = np.zeros_like(img_in)
@@ -83,10 +81,7 @@ def circ_shift(img_in: np.ndarray, shift_x: int, shift_y: int) -> np.ndarray:
             new_j = (j + shift_x) % w
             shifted[new_i, new_j] = img_in[i, j]
 
-    # kernel_padded = np.roll(kernel_padded, -(kernel_size // 2), axis=0)
-    # kernel_padded = np.roll(kernel_padded, -(kernel_size // 2), axis=1)
     return np.array(shifted, copy=True)
-    #return img_in.copy()
 
 
 def dft_real2complex(img_in: np.ndarray) -> np.ndarray:
