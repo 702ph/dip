@@ -132,11 +132,34 @@ def idft_complex2real(img_in: np.ndarray) -> np.ndarray:
     Returns:
         Real-valued spatial domain result (float32)
         
-    TODO: Implement this function
     """
-    # TODO: Implement inverse DFT
     
-    return np.fft.ifft2(img_in).real.astype(np.float32)
+    def idft_1d(freq: np.ndarray) -> np.ndarray:
+        N = freq.size
+        result = np.zeros(N, dtype=np.complex64)
+
+        n = np.arange(N)
+        for k in range(N):   
+            result += freq[k] * np.exp(2j * np.pi * k * n / N)
+        result /= N
+        return result
+
+    def idft_2d(freq2d: np.ndarray) -> np.ndarray:
+        rows, cols = freq2d.shape
+
+        cols_idft = np.zeros((rows, cols), dtype=np.complex64)
+        for c in range(cols):
+            cols_idft[:, c] = idft_1d(freq2d[:, c])
+
+        full_idft = np.zeros((rows, cols), dtype=np.complex64)
+        for r in range(rows):
+            full_idft[r, :] = idft_1d(cols_idft[r, :])
+
+        return full_idft
+
+    # img_real =  np.fft.ifft2(img_in).real.astype(np.float32)
+    idft_real = idft_2d(img_in).real.astype(np.float32)
+    return idft_real
     
 
 
