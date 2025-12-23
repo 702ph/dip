@@ -94,7 +94,7 @@ def dft_real2complex(img_in: np.ndarray) -> np.ndarray:
     Returns:
         Complex DFT result
     """
-
+    # Self-made dft, works but takes long
     def dft_1d(source: np.ndarray) -> np.ndarray:
         N = source.size
         result = np.zeros(N, dtype=np.complex64)
@@ -116,8 +116,8 @@ def dft_real2complex(img_in: np.ndarray) -> np.ndarray:
             full_dft[r, :] = dft_1d(cols_dft[r, :])
         return full_dft
 
-    # dft_complex = np.fft.fft2(img_in).astype(np.complex64) # numpy DFT
-    dft_complex = dft_2d(img_in) # our original DFT
+    dft_complex = np.fft.fft2(img_in).astype(np.complex64) # numpy DFT
+    #dft_complex = dft_2d(img_in) # our original DFT
     return dft_complex
 
 
@@ -133,7 +133,7 @@ def idft_complex2real(img_in: np.ndarray) -> np.ndarray:
         Real-valued spatial domain result (float32)
         
     """
-    
+    # Self-made idft, works but takes long
     def idft_1d(freq: np.ndarray) -> np.ndarray:
         N = freq.size
         result = np.zeros(N, dtype=np.complex64)
@@ -157,8 +157,9 @@ def idft_complex2real(img_in: np.ndarray) -> np.ndarray:
 
         return full_idft
 
-    # idft_real =  np.fft.ifft2(img_in).real.astype(np.float32)
-    idft_real = idft_2d(img_in).real.astype(np.float32)
+
+    idft_real =  np.fft.ifft2(img_in).real.astype(np.float32)
+    #idft_real = idft_2d(img_in).real.astype(np.float32)
     return idft_real
     
 
