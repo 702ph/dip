@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 import os
 import argparse
+from pathlib import Path
 
 
 from Dip4 import (
@@ -50,7 +51,12 @@ def main():
                         help='SNR parameter for Wiener filter')
     parser.add_argument('--no-display', action='store_true',
                         help='Disable display (for headless environments)')
+    parser.add_argument('--output', type=Path, default=Path("results"),
+                        help='Output directory for restored images')
     args = parser.parse_args()
+
+    # Output Directory
+    args.output.mkdir(parents=True, exist_ok=True)
     
     # Load image
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,6 +67,9 @@ def main():
         img_path = os.path.join(script_dir, args.image)
     if not os.path.exists(img_path):
         img_path = os.path.join(cpp_dir, args.image)
+
+    # base file name
+    base_filename = Path(img_path).name
     
     if os.path.exists(img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
@@ -72,6 +81,7 @@ def main():
     else:
         # Create synthetic test image
         print("Creating synthetic test image...")
+        base_filename = "synthetic.png" # added
         size = 256
         img = np.zeros((size, size), dtype=np.float32)
         # Add some patterns
@@ -129,7 +139,19 @@ def main():
     print(f"{'Degraded':<20} {degradation_psnr:<12.2f} {'baseline':<12}")
     print(f"{'Inverse Filter':<20} {inverse_psnr:<12.2f} {inverse_psnr - degradation_psnr:+.2f} dB")
     print(f"{'Wiener Filter':<20} {wiener_psnr:<12.2f} {wiener_psnr - degradation_psnr:+.2f} dB")
-    
+
+    # Save results
+    # filename: degraded_{filename}
+    cv2.imwrite(str(args.output / f"degraded_{base_filename}"),
+                np.clip(degraded, 0, 255).astype(np.uint8))
+    # filename: inverse_{filename}
+    cv2.imwrite(str(args.output / f"inverse_{base_filename}"),
+                np.clip(restored_inverse, 0, 255).astype(np.uint8))
+    # filename: wiener_{filename}
+    cv2.imwrite(str(args.output / f"wiener_{base_filename}"),
+                np.clip(restored_wiener, 0, 255).astype(np.uint8))
+
+
     # Display results if available
     if not args.no_display:
         try:
